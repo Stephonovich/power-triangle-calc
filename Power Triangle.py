@@ -10,7 +10,6 @@
 # and graphs the resulting triangle as a PNG (requires matplotlib)
 
 
-
 import math as m
 try:
     import tkinter as tk  # Python 3.x
@@ -37,11 +36,11 @@ def fetch(entries):
             inputs['Theta'] = m.radians(inputs['Theta']) # Use radians internally
         else:
             tkMsg.showerror("Error","Theta must be 0 < x < 90")
-            quitProg()
+            quit_prog()
     if inputs.get('kVA',0) <= max(inputs.get('kW',0),inputs.get('kVAR',0))\
         and inputs.get('kVA') is not None:
             tkMsg.showerror("Error","kVA must be > any other side")
-            quitProg()
+            quit_prog()
     if inputs.get('PF') is not None:
         if inputs.get('PF') < 0 or inputs.get('PF') > 1:
             pfError = tkMsg.askyesno("PF out of range", "You entered {0} for PF\
@@ -50,7 +49,7 @@ def fetch(entries):
                 inputs['PF'] = inputs['PF']/100
             if pfError == 0:
                 tkMsg.showerror("Error","PF must be 0 < x < 1")
-                quitProg() 
+                quit_prog() 
     global calcInputs
     calcInputs = inputs
     root.quit()
@@ -71,10 +70,17 @@ def makeform(root, fields):
 
     
     
-def resultsWindow(fields):
+def results_window(fields):
     root.withdraw()
     top = tk.Toplevel()
-    b3 = tk.Button(top, text = 'Quit', command=quitProg)
+    # Set up geometry of results to not be hidden by matplotlib
+    # w/h arbitrary values make it ~340x200 with 1920x1080 resolution
+    w = int(top.winfo_screenwidth()/5.6)
+    h = int(top.winfo_screenheight()/5.4)
+    x = int(top.winfo_screenwidth()*1/3)
+    y = int(top.winfo_screenheight()*1/4)
+    top.geometry('{0}x{1}-{2}+{3}'.format(w, h, x, y))
+    b3 = tk.Button(top, text = 'Quit', command=quit_prog)
     b3.pack(side=tk.RIGHT, padx=5, pady=5)
     for field in fields:
         row = tk.Frame(top)
@@ -84,7 +90,7 @@ def resultsWindow(fields):
     
 
     
-def returnResults(kW, kVAR, kVA, PF, Theta):
+def return_results(kW, kVAR, kVA, PF, Theta):
     d = locals()
     roundedOut = {}
     for k,v in d.items():
@@ -95,8 +101,8 @@ def returnResults(kW, kVAR, kVA, PF, Theta):
         else:
             roundedOut[k] = round(v,3)
     root.quit()
-    resultsWindow(roundedOut.items())
-    drawViz(kW, kVAR, kVA, m.degrees(Theta))
+    results_window(roundedOut.items())
+    draw_viz(kW, kVAR, kVA, m.degrees(Theta))
     
     
     
@@ -104,7 +110,7 @@ def from_KW_KVA(kW, kVA):
     Theta = m.acos(kW / kVA)
     kVAR = m.sin(Theta) * kVA
     PF = m.cos(Theta)
-    returnResults(kW, kVAR, kVA, PF, Theta)
+    return_results(kW, kVAR, kVA, PF, Theta)
 
 
     
@@ -112,7 +118,7 @@ def from_KW_KVAR(kW, kVAR):
     Theta = m.atan(kVAR / kW)
     PF = m.cos(Theta)
     kVA = kW / PF
-    returnResults(kW, kVAR, kVA, PF, Theta)
+    return_results(kW, kVAR, kVA, PF, Theta)
     
     
     
@@ -120,7 +126,7 @@ def from_KW_PF(kW, PF):
     Theta = m.acos(PF)
     kVAR = m.tan(Theta) * kW
     kVA = kW / PF
-    returnResults(kW, kVAR, kVA, PF, Theta)
+    return_results(kW, kVAR, kVA, PF, Theta)
         
         
         
@@ -128,14 +134,14 @@ def from_KW_THETA(kW, Theta):
     kVAR = m.tan(Theta) * kW
     PF = m.cos(Theta)
     kVA = kW / PF
-    returnResults(kW, kVAR, kVA, PF, Theta)
+    return_results(kW, kVAR, kVA, PF, Theta)
     
     
 def from_KVA_KVAR(kVA, kVAR):
     Theta = (m.asin(kVAR/kVA))
     PF = m.cos(Theta)
     kW = kVA * PF
-    returnResults(kW, kVAR, kVA, PF, Theta)
+    return_results(kW, kVAR, kVA, PF, Theta)
     
     
     
@@ -143,7 +149,7 @@ def from_KVA_PF(kVA, PF):
     Theta = m.acos(PF)
     kW = kVA * PF
     kVAR = m.tan(Theta)*kW
-    returnResults(kW, kVAR, kVA, PF, Theta)
+    return_results(kW, kVAR, kVA, PF, Theta)
 
 
 
@@ -151,7 +157,7 @@ def from_KVA_THETA(kVA, Theta):
     PF = m.cos(Theta)
     kW = kVA * PF
     kVAR = m.tan(Theta)*kW
-    returnResults(kW, kVAR, kVA, PF, Theta)
+    return_results(kW, kVAR, kVA, PF, Theta)
 
 
 
@@ -159,7 +165,7 @@ def from_KVAR_PF(kVAR, PF):
     Theta = m.acos(PF)
     kVA = kVAR / m.sin(Theta)
     kW = kVA * PF
-    returnResults(kW, kVAR, kVA, PF, Theta)
+    return_results(kW, kVAR, kVA, PF, Theta)
 
 
 
@@ -167,30 +173,31 @@ def from_KVAR_THETA(kVAR, Theta):
     PF = m.cos(Theta)
     kVA = kVAR / m.sin(Theta)
     kW = kVA * PF
-    returnResults(kW, kVAR, kVA, PF, Theta)
+    return_results(kW, kVAR, kVA, PF, Theta)
     
     
 
-def catchInput(PF, Theta):
+def catch_input(PF, Theta):
     tkMsg.showwarning("Inadequate Data", "Power Factor is cos(theta).\nPlease use other values.")
-    quitProg()
+    quit_prog()
     
     
     
-def getInput():
+def get_input():
     root.deiconify()
     root.title("Power Triangle Calculator")
     ents = makeform(root, fields)
     root.bind('<Return>', (lambda event, e=ents: fetch(e)))
     b1 = tk.Button(root, text = 'Calculate', command=(lambda e=ents: fetch(e)))
     b1.pack(side=tk.LEFT, padx=5, pady=5)
-    b2 = tk.Button(root, text = 'Quit', command=quitProg)
+    b2 = tk.Button(root, text = 'Quit', command=quit_prog)
     b2.pack(side=tk.LEFT, padx=5, pady=5)
     root.mainloop()
 
+
     
-    
-def drawViz(kW, kVAR, kVA, Theta):
+
+def draw_viz(kW, kVAR, kVA, Theta):
     p = [0, 0] # x = 0, y = 0 (real power base)
     q = [kW, 0] # x = kW, y = 0 (real power scalar / reactive power base)
     s = [kW, kVAR] # x = kW, y = kVAR (apparent power top)
@@ -201,32 +208,33 @@ def drawViz(kW, kVAR, kVA, Theta):
     plt.gca().add_patch(polygon)
     plt.axis('scaled')
     # All xy values were established with trial and error, change as desired
-    plt.annotate('{0} kW'.format(round(kW,2)), xy=(0.5,-0.1), xycoords='axes fraction')
-    plt.annotate('{0} kVAR'.format(round(kVAR,2)), xy=(1.05,0.5), xycoords='axes fraction')
+    plt.annotate('{0} kW'.format(round(kW,2)), xy=(0.5,-0.2), xycoords='axes fraction')
+    plt.annotate('{0} \nkVAR'.format(round(kVAR,2)), xy=(1.05,0.5), xycoords='axes fraction')
     plt.annotate('{0} kVA'.format(round(kVA,2)), xy=((0.25*kW),\
-        (0.5*(slope*kW)+(0.05*kW))), xycoords='data')
+        (0.5*(slope*kW)+(0.05*kW))), xycoords='data') # y = 0.5mx+0.05x
     #$\\x$ is LaTeX encoding for matplotlib
     plt.annotate(u'$\\theta$ {0} \xb0'.format(round(Theta,3)),\
         xy=((0.05*kW),(0.02*kVAR)), xycoords='data')
     plt.show()
- 
+
 
  
-def restartProg():
-    #root.quit()
+def restart_prog():
+    root.destroy()
+    root = tk.Tk()
+    root.withdraw()
     main()
+
     
     
 
-def quitProg():
+def quit_prog():
     raise SystemExit
     
     
 
 def main():
-    root.withdraw()
-
-    getInput()
+    get_input()
 
     given_keys = []
 
@@ -256,17 +264,17 @@ def main():
             'PF_kVAR' : from_KVAR_PF,
             'kVAR_Theta' : from_KVAR_THETA,
             'Theta_kVAR' : from_KVAR_THETA,
-            'PF_Theta' : catchInput,
-            'Theta_PF' : catchInput
+            'PF_Theta' : catch_input,
+            'Theta_PF' : catch_input
             
                 } # PF_Theta doesn't work as PF is cos(theta)
                   # Couldn't find a better way to sort, so foo_bar | bar_foo works
                 
     calc_function = dispatch[calc_key] # e.g. calc_function becomes from_KW_KVA
     calc_function(**calcInputs) # e.g. from_KW_KVA is called with calcInputs as kwargs
-
     
+
 root = tk.Tk()
-root.withdraw()    
+root.withdraw()
 tkMsg.showinfo("Usage", "Please enter only two values.\nTheta and Power Factor cannot be used together.")
 main()
